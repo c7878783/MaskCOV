@@ -58,7 +58,7 @@ def train(Config,
     get_angle_loss = AngleLoss()
 
     for epoch in range(start_epoch,epoch_num):
-        exp_lr_scheduler.step(epoch)
+        # exp_lr_scheduler.step(epoch)
         model.train(True)
 
         iteration = 0
@@ -120,7 +120,7 @@ def train(Config,
 
             optimizer.step()
             torch.cuda.synchronize()
-
+            exp_lr_scheduler.step()
             if Config.use_cdrm:
                 print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+cova_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), cova_loss.detach().item()), flush=True)
             if Config.use_backbone:

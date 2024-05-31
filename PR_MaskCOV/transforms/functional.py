@@ -2,7 +2,8 @@ from __future__ import division
 import torch
 import math
 import random
-from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
+from PIL import Image, ImageOps, ImageEnhance
+from PIL import __version__ as PILLOW_VERSION
 try:
     import accimage
 except ImportError:
@@ -67,7 +68,9 @@ def to_tensor(pic):
     elif pic.mode == '1':
         img = 255 * torch.from_numpy(np.array(pic, np.uint8, copy=False))
     else:
-        img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
+        # img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
+        pic_array = np.array(pic)  # 将 PIL.Image 对象转换为 NumPy 数组
+        img = torch.tensor(pic_array, dtype=torch.uint8)  # 直接从 NumPy 数组创建 Tensor
     # PIL image mode: L, P, I, F, RGB, YCbCr, RGBA, CMYK
     if pic.mode == 'YCbCr':
         nchannel = 3
@@ -412,7 +415,7 @@ def swap(img, crop):
         x = 0
         y = 0
         for i in random_im:
-            i = i.resize((iw, ih), Image.ANTIALIAS)
+            i = i.resize((iw, ih), Image.Resampling.LANCZOS)
             toImage.paste(i, (x * iw, y * ih))
             x += 1
             if x == crop[0]:

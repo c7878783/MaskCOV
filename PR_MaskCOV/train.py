@@ -71,7 +71,7 @@ def parse_args():
     parser.add_argument('--tnw', dest='train_num_workers',
                         default=8, type=int)
     parser.add_argument('--vnw', dest='val_num_workers',
-                        default=16, type=int)
+                        default=8, type=int)
     parser.add_argument('--detail', dest='discribe',
                         default='', type=str)
     parser.add_argument('--size', dest='resize_resolution',
