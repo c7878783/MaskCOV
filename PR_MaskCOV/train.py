@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument('--data', dest='dataset',
                         default='COTTON', type=str,
                         help="COTTON, Soybean200, Soybean2000, soybean_gene, R1, R3, R4, R5, R6")
-    parser.add_argument('--use_maskcov', dest='use_cdrm',
+    parser.add_argument('--use_maskcov', dest='use_cdrm',#covariance driven $ random mask
                         action='store_true')
     parser.add_argument('--mask_num', default=1, type=int,
                         help="1,2,3")
@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument('--vb', dest='val_batch',
                         default=128, type=int)
     parser.add_argument('--sp', dest='save_point',
-                        default=20, type=int)
+                        default=50, type=int)
     parser.add_argument('--cp', dest='check_point',
                         default=20, type=int)
     parser.add_argument('--lr', dest='base_lr',
@@ -69,7 +69,7 @@ def parse_args():
     parser.add_argument('--start_epoch', dest='start_epoch',
                         default=0,  type=int)
     parser.add_argument('--tnw', dest='train_num_workers',
-                        default=16, type=int)
+                        default=8, type=int)
     parser.add_argument('--vnw', dest='val_num_workers',
                         default=16, type=int)
     parser.add_argument('--detail', dest='discribe',
