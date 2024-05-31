@@ -57,6 +57,7 @@ def train(Config,
     get_focal_loss = FocalLoss()
     get_angle_loss = AngleLoss()
 
+    best_acc = 0    
     for epoch in range(start_epoch,epoch_num):
         # exp_lr_scheduler.step(epoch)
         model.train(True)
@@ -134,31 +135,45 @@ def train(Config,
             loss_epoch_ce = loss_epoch_ce + ce_loss.detach().item()
             loss_epoch_swap = loss_epoch_swap + swap_loss.detach().item()
             loss_epoch_cova = loss_epoch_cova + cova_loss.detach().item()
+
+        # 训练信息
+        print(32*'-', flush=True)
+        print('step: {:d} / {:d} global_step: {:8.2f} train_epoch: {:04d} rec_train_loss: {:6.4f}'.format(step, train_epoch_step, 1.0*step/train_epoch_step, epoch, train_loss_recorder.get_val()), flush=True)
+        print('current lr:%s' % exp_lr_scheduler.get_last_lr(), flush=True)
+        
         exp_lr_scheduler.step()
 
         writer.add_scalar('loss', loss_epoch / iteration, (epoch + 1))
         writer.add_scalar('ce_loss', loss_epoch_ce / iteration, (epoch + 1))
         writer.add_scalar('swap_loss', loss_epoch_swap / iteration, (epoch + 1))
         writer.add_scalar('cova_loss', loss_epoch_cova / iteration, (epoch + 1))
+        val1, val2, val3= eval_turn(model, data_loader['val'], 'val', epoch, log_file)
 
-        # evaluation & save
-        if (epoch + 1) % checkpoint == 0:  # 表示每几个step保存并且val一次模型
-
-            print(32*'-', flush=True)
-            print('step: {:d} / {:d} global_step: {:8.2f} train_epoch: {:04d} rec_train_loss: {:6.4f}'.format(step, train_epoch_step, 1.0*step/train_epoch_step, epoch, train_loss_recorder.get_val()), flush=True)
-            print('current lr:%s' % exp_lr_scheduler.get_last_lr(), flush=True)
-            if eval_train_flag:
-                trainval_acc1, trainval_acc2, trainval_acc3 = eval_turn(model, data_loader['trainval'], 'trainval', epoch, log_file)
-                if abs(trainval_acc1 - trainval_acc3) < 0.01:
-                    eval_train_flag = False
-
-            val_acc1, val_acc2, val_acc3 = eval_turn(model, data_loader['val'], 'val', epoch, log_file)
-
-            save_path = os.path.join(save_dir, 'weights_epoch%d_step%d_valtop1acc%.4f_valtop3acc%.4f.pth'%((epoch + 1), (batch_cnt + 1), val_acc1, val_acc3))
-            torch.cuda.synchronize()
+        # 只保存最优模型
+        if val1 > best_acc:
+            best_acc = val1
+            save_path = os.path.join(save_dir, 'best_model.pth')
             torch.save(model.state_dict(), save_path)
-            print('saved model to %s' % (save_path), flush=True)
-            torch.cuda.empty_cache()
+            print('保存最优模型到%s' % (save_path), flush=True)
+        
+        # evaluation & save
+        # if (epoch + 1) % checkpoint == 0:  # 表示每几个step保存并且val一次模型
+
+        #     print(32*'-', flush=True)
+        #     print('step: {:d} / {:d} global_step: {:8.2f} train_epoch: {:04d} rec_train_loss: {:6.4f}'.format(step, train_epoch_step, 1.0*step/train_epoch_step, epoch, train_loss_recorder.get_val()), flush=True)
+        #     print('current lr:%s' % exp_lr_scheduler.get_last_lr(), flush=True)
+        #     if eval_train_flag:
+        #         trainval_acc1, trainval_acc2, trainval_acc3 = eval_turn(model, data_loader['trainval'], 'trainval', epoch, log_file)
+        #         if abs(trainval_acc1 - trainval_acc3) < 0.01:
+        #             eval_train_flag = False
+
+        #     val_acc1, val_acc2, val_acc3 = eval_turn(model, data_loader['val'], 'val', epoch, log_file)
+
+        #     save_path = os.path.join(save_dir, 'weights_epoch%d_step%d_valtop1acc%.4f_valtop3acc%.4f.pth'%((epoch + 1), (batch_cnt + 1), val_acc1, val_acc3))
+        #     torch.cuda.synchronize()
+        #     torch.save(model.state_dict(), save_path)
+        #     print('saved model to %s' % (save_path), flush=True)
+        #     torch.cuda.empty_cache()
 
         # save only
         savepoint = epoch_num
