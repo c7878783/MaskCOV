@@ -36,9 +36,9 @@ def parse_args():
     parser.add_argument('--b', dest='batch_size',
                         default=16, type=int)
     parser.add_argument('--nw', dest='num_workers',
-                        default=16, type=int)
+                        default=8, type=int)
     parser.add_argument('--ver', dest='version',
-                        default='val', type=str)
+                        default='test', type=str)
     parser.add_argument('--save', dest='resume',
                         default=None, type=str)
     parser.add_argument('--size', dest='resize_resolution',
