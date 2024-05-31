@@ -192,7 +192,7 @@ def train(Config,
             torch.save(model.state_dict(), save_path)
             torch.cuda.empty_cache()
 
-
+    print('最高验证精度为：%.4f' % best_acc, flush=True)#TODO 这里只是显示最高精度，可以增加读取best_model然后再次验证的代码
     log_file.close()
 
 
