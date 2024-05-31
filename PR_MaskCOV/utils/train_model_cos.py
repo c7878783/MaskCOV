@@ -122,8 +122,8 @@ def train_cos(Config,
             torch.cuda.synchronize()
             exp_lr_scheduler.step_update(step)
             if Config.use_cdrm:
-                print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+cova_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} \t'
-                    'lr: {lr:.6f}'.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), cova_loss.detach().item(), lr=optimizer.param_groups[0]['lr']), flush=True)
+                print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+cova_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f}'
+                    .format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), cova_loss.detach().item()), flush=True)
             if Config.use_backbone:
                 print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+cova_loss: {:6.4f} = {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item()), flush=True)
             rec_loss.append(loss.detach().item())

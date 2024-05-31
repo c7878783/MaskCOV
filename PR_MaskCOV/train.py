@@ -22,6 +22,7 @@ from utils.train_model_cos import train_cos
 from models.LoadModel import MainModel
 from config import LoadConfig, load_data_transformers
 from utils.dataset import collate_fn4train, collate_fn4val, collate_fn4test, collate_fn4backbone, dataset
+import time as Time
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 
@@ -58,9 +59,9 @@ def parse_args():
     parser.add_argument('--vb', dest='val_batch',
                         default=128, type=int)
     parser.add_argument('--sp', dest='save_point',
-                        default=50, type=int)
+                        default=150, type=int)
     parser.add_argument('--cp', dest='check_point',
-                        default=50, type=int)
+                        default=30, type=int)
     parser.add_argument('--lr', dest='base_lr',
                         default=0.001, type=float)
     parser.add_argument('--lr_step', dest='decay_step',
@@ -102,6 +103,9 @@ def auto_load_resume(load_dir):
 
 
 if __name__ == '__main__':
+
+    start_time = Time.time()
+
     args = parse_args()
     print(args, flush=True)
     Config = LoadConfig(args, 'train')
@@ -202,7 +206,7 @@ if __name__ == '__main__':
 
     print('Set cache dir', flush=True)
     time = datetime.datetime.now()
-    filename = '%s_%s*%s'%(args.discribe,str(args.swap_num[0]), str(args.swap_num[1]))
+    filename = '%s_%s%s'%(args.discribe,str(args.swap_num[0]), str(args.swap_num[1]))
     save_dir = os.path.join(Config.save_dir, filename)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -255,16 +259,35 @@ if __name__ == '__main__':
         
     elif args.lr_scheduler == 'cos':
         print('cosine学习率', flush=True)
-        train_cos(Config,
+        exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epoch, eta_min=0.000001)
+        train(Config,
             model,
             epoch_num=args.epoch,
             start_epoch=args.start_epoch,
             optimizer=optimizer,
+            exp_lr_scheduler=exp_lr_scheduler,
             data_loader=dataloader,
             save_dir=save_dir,
             data_size=args.crop_resolution,
             savepoint=args.save_point,
             checkpoint=args.check_point)
+        # train_cos(Config,
+        #     model,
+        #     epoch_num=args.epoch,
+        #     start_epoch=args.start_epoch,
+        #     optimizer=optimizer,
+        #     data_loader=dataloader,
+        #     save_dir=save_dir,
+        #     data_size=args.crop_resolution,
+        #     savepoint=args.save_point,
+        #     checkpoint=args.check_point)
         
     else:
         raise Exception("no such lr scheduler")
+    end_time = Time.time()
+    elapsed_time = end_time - start_time
+
+    hours, rem = divmod(elapsed_time, 3600)
+    minutes, seconds = divmod(rem, 60)
+
+    print(f"程序运行时间：{int(hours)}时{int(minutes)}分{int(seconds)}秒")

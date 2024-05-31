@@ -120,7 +120,7 @@ def train(Config,
 
             optimizer.step()
             torch.cuda.synchronize()
-            exp_lr_scheduler.step()
+            
             if Config.use_cdrm:
                 print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+cova_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), cova_loss.detach().item()), flush=True)
             if Config.use_backbone:
@@ -134,6 +134,7 @@ def train(Config,
             loss_epoch_ce = loss_epoch_ce + ce_loss.detach().item()
             loss_epoch_swap = loss_epoch_swap + swap_loss.detach().item()
             loss_epoch_cova = loss_epoch_cova + cova_loss.detach().item()
+        exp_lr_scheduler.step()
 
         writer.add_scalar('loss', loss_epoch / iteration, (epoch + 1))
         writer.add_scalar('ce_loss', loss_epoch_ce / iteration, (epoch + 1))
@@ -145,7 +146,7 @@ def train(Config,
 
             print(32*'-', flush=True)
             print('step: {:d} / {:d} global_step: {:8.2f} train_epoch: {:04d} rec_train_loss: {:6.4f}'.format(step, train_epoch_step, 1.0*step/train_epoch_step, epoch, train_loss_recorder.get_val()), flush=True)
-            print('current lr:%s' % exp_lr_scheduler.get_lr(), flush=True)
+            print('current lr:%s' % exp_lr_scheduler.get_last_lr(), flush=True)
             if eval_train_flag:
                 trainval_acc1, trainval_acc2, trainval_acc3 = eval_turn(model, data_loader['trainval'], 'trainval', epoch, log_file)
                 if abs(trainval_acc1 - trainval_acc3) < 0.01:
