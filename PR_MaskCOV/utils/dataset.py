@@ -100,6 +100,8 @@ class dataset(data.Dataset):
 
         covaMatrix_list_unswap_original = []  # original img cova
         for crop_img in image_unswap_list_original:
+            # print(crop_img.size)
+            # import pdb; pdb.set_trace()
             covariance_matrix = self.cal_covariance(crop_img)
             covaMatrix_list_unswap_original.append(covariance_matrix)
 

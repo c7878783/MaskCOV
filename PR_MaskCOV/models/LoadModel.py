@@ -9,7 +9,7 @@ from models.Asoftmax_linear import AngleLinear
 from config import pretrained_model
 
 import pdb
-
+# 58.33
 class MainModel(nn.Module):
     def __init__(self, config,args):
         super(MainModel, self).__init__()
@@ -55,18 +55,27 @@ class MainModel(nn.Module):
             self.Aclassifier = AngleLinear(2048, self.num_classes, bias=False)
 
     def forward(self, x, last_cont=None):
+        # print(x.size())
+        # import pdb; pdb.set_trace()
         x = self.model(x)  # resnet50 backbone
-
+        # print(x.size())
+        # import pdb; pdb.set_trace()
         x = self.avgpool(x)
+        # print(x.size())
+        # import pdb; pdb.set_trace()
         x = x.view(x.size(0), -1)
-        
+        # print(x.size())
+        # import pdb; pdb.set_trace()
         out = []
         out.append(self.classifier(x))
 
         if self.use_cdrm:
             out.append(self.classifier_swap(x))
             out.append(self.classifier_cova(x))
-
+        # print(out[0].size())
+        # print(out[1].size())
+        # print(out[2].size())
+        # import pdb; pdb.set_trace()
         if self.use_Asoftmax:
             if last_cont is None:
                 x_size = x.size(0)

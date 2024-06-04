@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=1 python train.py --data COTTON --use_maskcov --epoch 160 -
 
 CUDA_VISIBLE_DEVICES=0,1 python test.py --data COTTON --backbone resnet50  --save ./logs/COTTON/cub_model1_2*2/savepoint-last-model-steps2400-valtop1acc0.1917_valtop3acc0.3708.pth
 
-
+CUDA_VISIBLE_DEVICES=2 python train.py --data COTTON --use_maskcov --epoch 160 --backbone resnet50 --cls_2 --detail ori --tb 16
 
 
 # Attention Please

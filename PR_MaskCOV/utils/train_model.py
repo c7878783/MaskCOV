@@ -83,7 +83,8 @@ def train(Config,
                 labels = Variable(torch.from_numpy(np.array(labels)).cuda())
                 labels_swap = Variable(torch.from_numpy(np.array(labels_swap)).cuda())
                 swap_cov = Variable(torch.from_numpy(np.array(swap_cov)).float().cuda())
-
+                # print('swap_cov:', swap_cov.size())
+                
             optimizer.zero_grad()
 
             if inputs.size(0) < 2*train_batch_size:
@@ -155,7 +156,8 @@ def train(Config,
             save_path = os.path.join(save_dir, 'best_model.pth')
             torch.save(model.state_dict(), save_path)
             print('保存最优模型到%s' % (save_path), flush=True)
-        
+        else:
+            print("当前精度%.4f, 最高精度%.4f" % (val1, best_acc), flush=True)
         # evaluation & save
         # if (epoch + 1) % checkpoint == 0:  # 表示每几个step保存并且val一次模型
 
@@ -193,6 +195,7 @@ def train(Config,
             torch.cuda.empty_cache()
 
     print('最高验证精度为：%.4f' % best_acc, flush=True)#TODO 这里只是显示最高精度，可以增加读取best_model然后再次验证的代码
+    log_file.write('最高验证精度为：%.4f\n' % best_acc)
     log_file.close()
 
 

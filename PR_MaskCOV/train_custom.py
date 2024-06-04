@@ -21,6 +21,7 @@ from utils.train_model import train
 from utils.train_model_cos import train_cos
 from models.LoadModel import MainModel
 from models.LoadModel2 import MainModel2
+from models.LoadModel3 import MainModel3
 from config import LoadConfig, load_data_transformers
 from utils.dataset import collate_fn4train, collate_fn4val, collate_fn4test, collate_fn4backbone, dataset
 import time as Time
@@ -89,6 +90,7 @@ def parse_args():
                     nargs=2, metavar=('swap1', 'swap2'),
                     type=int, help='specify a range')
     parser.add_argument('--lr_scheduler', default='stage', type=str)
+    parser.add_argument('--method', default='1', type=str)
     args = parser.parse_args()
     return args
 
@@ -183,8 +185,12 @@ if __name__ == '__main__':
     cudnn.benchmark = True
 
     print('Choose model and train set', flush=True)
-    model = MainModel(Config,args)
-    # model = MainModel2(Config,args)
+    if args.method == '1':
+        model = MainModel2(Config,args)
+    elif args.method == '2':
+        model = MainModel3(Config,args)
+    else:
+        raise Exception("no such method")
     print(model)
     num_param = 0
     for param in model.parameters():
@@ -228,8 +234,9 @@ if __name__ == '__main__':
         ignored_params1 = list(map(id, model.module.classifier.parameters()))
         ignored_params2 = list(map(id, model.module.classifier_swap.parameters()))
         ignored_params3 = list(map(id, model.module.classifier_cova.parameters()))
-    
-        ignored_params = ignored_params1 + ignored_params2 + ignored_params3
+        ignored_params4 = list(map(id, model.module.conv_dim.parameters()))
+
+        ignored_params = ignored_params1 + ignored_params2 + ignored_params3 + ignored_params4
     print('the num of new layers:', len(ignored_params), flush=True)
     base_params = filter(lambda p: id(p) not in ignored_params, model.module.parameters())
 
@@ -243,6 +250,7 @@ if __name__ == '__main__':
                                {'params': model.module.classifier.parameters(), 'lr': lr_ratio*base_lr},
                                {'params': model.module.classifier_swap.parameters(), 'lr': lr_ratio*base_lr},
                                {'params': model.module.classifier_cova.parameters(), 'lr': lr_ratio*base_lr},
+                               {'params': model.module.conv_dim.parameters(), 'lr': lr_ratio*base_lr},
                               ], lr = base_lr, momentum=0.9)
 
     if args.lr_scheduler == 'stage':
