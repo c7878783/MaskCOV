@@ -41,18 +41,18 @@ def load_data_transformers(resize_reso=440, crop_reso=384, swap_num=[2, 2]):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
         'common_small':transforms.Compose([
-            transforms.Resize((256, 256)),
+            transforms.Resize((289, 289)),
             transforms.RandomRotation(degrees=15),
-            transforms.RandomCrop((224,224)),
+            transforms.RandomCrop((256,256)),
             transforms.RandomHorizontalFlip(),
         ]),
         'train_small': transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((256, 256)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
         'val_small':transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((256, 256)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
@@ -181,3 +181,4 @@ class LoadConfig(object):
         self.weighted_sample = False
         self.cls_2 = True
         self.cls_2xmul = False
+        self.small = False

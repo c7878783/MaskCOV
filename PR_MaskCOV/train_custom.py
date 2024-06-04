@@ -91,6 +91,7 @@ def parse_args():
                     type=int, help='specify a range')
     parser.add_argument('--lr_scheduler', default='stage', type=str)
     parser.add_argument('--method', default='1', type=str)
+    parser.add_argument('--small', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -117,6 +118,7 @@ if __name__ == '__main__':
     Config.mask_num = args.mask_num
     Config.cls_2 = args.cls_2
     Config.cls_2xmul = args.cls_mul
+    Config.small = args.small
     assert Config.cls_2 ^ Config.cls_2xmul
 
     setup_seed(1)
@@ -124,30 +126,61 @@ if __name__ == '__main__':
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
 
     # inital dataloader
-    train_set = dataset(Config = Config,
+    if args.small:
+        print('小图像', flush=True)
+        train_set = dataset(Config = Config,
                         anno = Config.train_anno,
                         swap_size = args.swap_num,
-                        common_aug = transformers["common_aug"],
+                        common_aug = transformers["common_small"],
                         swap = transformers["swap"],
-                        totensor = transformers["train_totensor"],
-                        train = True)
+                        totensor = transformers["train_small"],
+                        train = True,
+                        small=args.small)
 
-    trainval_set = dataset(Config = Config,
+        trainval_set = dataset(Config = Config,
                         anno = Config.train_anno,
                         swap_size=args.swap_num,
                         common_aug = transformers["None"],
                         swap = transformers["None"],
-                        totensor = transformers["val_totensor"],
+                        totensor = transformers["val_small"],
                         train = False,
-                        train_val = True)
+                        train_val = True,
+                        small=args.small)
 
-    val_set = dataset(Config = Config,
+        val_set = dataset(Config = Config,
                       anno = Config.val_anno,
                       swap_size=args.swap_num,
                       common_aug = transformers["None"],
                       swap = transformers["None"],
-                      totensor = transformers["test_totensor"],
-                      test=True)
+                      totensor = transformers["val_small"],
+                      test=True,
+                      small=args.small)
+    else:
+        print('大图像', flush=True)
+        train_set = dataset(Config = Config,
+                            anno = Config.train_anno,
+                            swap_size = args.swap_num,
+                            common_aug = transformers["common_aug"],
+                            swap = transformers["swap"],
+                            totensor = transformers["train_totensor"],
+                            train = True)
+
+        trainval_set = dataset(Config = Config,
+                            anno = Config.train_anno,
+                            swap_size=args.swap_num,
+                            common_aug = transformers["None"],
+                            swap = transformers["None"],
+                            totensor = transformers["val_totensor"],
+                            train = False,
+                            train_val = True)
+
+        val_set = dataset(Config = Config,
+                        anno = Config.val_anno,
+                        swap_size=args.swap_num,
+                        common_aug = transformers["None"],
+                        swap = transformers["None"],
+                        totensor = transformers["test_totensor"],
+                        test=True)
 
     dataloader = {}  # dict
     dataloader['train'] = torch.utils.data.DataLoader(train_set,
@@ -187,8 +220,13 @@ if __name__ == '__main__':
     print('Choose model and train set', flush=True)
     if args.method == '1':
         model = MainModel2(Config,args)
+        print('降到3x3并裁剪', flush=True)
     elif args.method == '2':
         model = MainModel3(Config,args)
+        print('降到6x6', flush=True)
+    elif args.method == '0':
+        model = MainModel(Config,args)
+        print('原始结构', flush=True)
     else:
         raise Exception("no such method")
     print(model)
@@ -230,6 +268,12 @@ if __name__ == '__main__':
     # optimizer prepare
     if Config.use_backbone:
         ignored_params = list(map(id, model.module.classifier.parameters()))
+    elif args.method == '0':
+        ignored_params1 = list(map(id, model.module.classifier.parameters()))
+        ignored_params2 = list(map(id, model.module.classifier_swap.parameters()))
+        ignored_params3 = list(map(id, model.module.classifier_cova.parameters()))
+    
+        ignored_params = ignored_params1 + ignored_params2 + ignored_params3
     else:
         ignored_params1 = list(map(id, model.module.classifier.parameters()))
         ignored_params2 = list(map(id, model.module.classifier_swap.parameters()))
@@ -245,6 +289,12 @@ if __name__ == '__main__':
     if Config.use_backbone:
         optimizer = optim.SGD([{'params': base_params},
                                {'params': model.module.classifier.parameters(), 'lr': base_lr}], lr = base_lr, momentum=0.9)
+    elif args.method == '0':
+        optimizer = optim.SGD([{'params': base_params},
+                               {'params': model.module.classifier.parameters(), 'lr': lr_ratio*base_lr},
+                               {'params': model.module.classifier_swap.parameters(), 'lr': lr_ratio*base_lr},
+                               {'params': model.module.classifier_cova.parameters(), 'lr': lr_ratio*base_lr},
+                              ], lr = base_lr, momentum=0.9)
     else:
         optimizer = optim.SGD([{'params': base_params},
                                {'params': model.module.classifier.parameters(), 'lr': lr_ratio*base_lr},

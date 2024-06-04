@@ -27,13 +27,14 @@ def random_sample(img_names, labels):
     return img_list, anno_list
 
 class dataset(data.Dataset):
-    def __init__(self, Config, anno, swap_size=[2,2], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False):
+    def __init__(self, Config, anno, swap_size=[2,2], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False, small=False):
         self.Config = Config
         self.root_path = Config.rawdata_root
         self.numcls = Config.numcls
         self.dataset = Config.dataset
         self.use_cls_2 = Config.cls_2
         self.use_cls_mul = Config.cls_2xmul
+        self.small = Config.small
         if isinstance(anno, pandas.core.frame.DataFrame):
             self.paths = anno['ImageName'].tolist()
             self.labels = anno['label'].tolist()
@@ -76,12 +77,20 @@ class dataset(data.Dataset):
         mask_num = random.sample(foo, self.Config.mask_num)  # masked number
         j = mask_num[0] % self.swap_size[0]
         i = mask_num[0] // self.swap_size[0]
-        h_space = int(384/self.swap_size[0])
-        w_space = int(384/self.swap_size[0])
+        if self.small:
+            h_space = int(256/self.swap_size[0])
+            w_space = int(256/self.swap_size[0])
 
-        mask = np.ones([384, 384])
-        mask[i * h_space: (i + 1) * h_space, j * w_space: (j + 1) * w_space] = 0
-        mask = mask.reshape(384, 384, 1)
+            mask = np.ones([256, 256])
+            mask[i * h_space: (i + 1) * h_space, j * w_space: (j + 1) * w_space] = 0
+            mask = mask.reshape(256, 256, 1)
+        else:
+            h_space = int(384/self.swap_size[0])
+            w_space = int(384/self.swap_size[0])
+
+            mask = np.ones([384, 384])
+            mask[i * h_space: (i + 1) * h_space, j * w_space: (j + 1) * w_space] = 0
+            mask = mask.reshape(384, 384, 1)
 
         # # custom fine-grained dataset input = 448
         # mask_num = random.sample(foo, 1)  # 遮住几块
