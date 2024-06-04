@@ -7,6 +7,6 @@ CUDA_VISIBLE_DEVICES=0,1 python test.py --data COTTON --backbone resnet50  --sav
 
 CUDA_VISIBLE_DEVICES=2 python train.py --data COTTON --use_maskcov --epoch 160 --backbone resnet50 --cls_2 --detail ori --tb 16
 
-
+CUDA_VISIBLE_DEVICES=0,1 python train_custom.py --data soybean_gene --use_maskcov --epoch 240 --backbone resnet50 --cls_2 --detail dsa1_cos_step --tb 16 --lr_scheduler cos_step --method 1
 # Attention Please
 #1. change "COTTON, Soybean200, Soybean2000, soybean_gene, R1, R3, R4, R5, R6" the same to paper , 46 line train.py and config.py file ; test.py 33 line
