@@ -15,7 +15,7 @@ from utils.utils import LossRecord, clip_gradient
 from models.focal_loss import FocalLoss
 from utils.eval_model import eval_turn
 from utils.Asoftmax_loss import AngleLoss
-
+import time as Time
 from tensorboardX import SummaryWriter
 
 import pdb
@@ -59,6 +59,7 @@ def train(Config,
 
     best_acc = 0    
     for epoch in range(start_epoch,epoch_num):
+        # start_time = Time.time()
         # exp_lr_scheduler.step(epoch)
         model.train(True)
 
@@ -68,6 +69,7 @@ def train(Config,
         loss_epoch_swap = 0
         loss_epoch_cova = 0
         for batch_cnt, data in enumerate(data_loader['train']):
+            
             step += 1
             loss = 0
             model.train(True)
@@ -193,6 +195,13 @@ def train(Config,
                 del checkpoint_list[0]
             torch.save(model.state_dict(), save_path)
             torch.cuda.empty_cache()
+        # end_time = Time.time()
+        # elapsed_time = end_time - start_time
+
+        # hours, rem = divmod(elapsed_time, 3600)
+        # minutes, seconds = divmod(rem, 60)
+
+        # print(f"程序运行时间：{int(hours)}时{int(minutes)}分{int(seconds)}秒")
 
     print('最高验证精度为：%.4f' % best_acc, flush=True)#TODO 这里只是显示最高精度，可以增加读取best_model然后再次验证的代码
     log_file.write('最高验证精度为：%.4f\n' % best_acc)

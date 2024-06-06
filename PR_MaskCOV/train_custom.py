@@ -119,6 +119,9 @@ if __name__ == '__main__':
     Config.cls_2 = args.cls_2
     Config.cls_2xmul = args.cls_mul
     Config.small = args.small
+    if args.small:
+        args.resize_resolution = 289
+        args.crop_resolution = 256
     assert Config.cls_2 ^ Config.cls_2xmul
 
     setup_seed(1)
@@ -128,30 +131,55 @@ if __name__ == '__main__':
     # inital dataloader
     if args.small:
         print('小图像', flush=True)
+        print(transformers["common_aug"])
         train_set = dataset(Config = Config,
-                        anno = Config.train_anno,
-                        swap_size = args.swap_num,
-                        common_aug = transformers["common_small"],
-                        swap = transformers["swap"],
-                        totensor = transformers["train_small"],
-                        train = True,)
+                            anno = Config.train_anno,
+                            swap_size = args.swap_num,
+                            common_aug = transformers["common_aug"],
+                            swap = transformers["swap"],
+                            totensor = transformers["train_totensor"],
+                            train = True)
 
         trainval_set = dataset(Config = Config,
-                        anno = Config.train_anno,
+                            anno = Config.train_anno,
+                            swap_size=args.swap_num,
+                            common_aug = transformers["None"],
+                            swap = transformers["None"],
+                            totensor = transformers["val_totensor"],
+                            train = False,
+                            train_val = True)
+
+        val_set = dataset(Config = Config,
+                        anno = Config.val_anno,
                         swap_size=args.swap_num,
                         common_aug = transformers["None"],
                         swap = transformers["None"],
-                        totensor = transformers["val_small"],
-                        train = False,
-                        train_val = True,)
+                        totensor = transformers["test_totensor"],
+                        test=True)
+        # train_set = dataset(Config = Config,
+        #                 anno = Config.train_anno,
+        #                 swap_size = args.swap_num,
+        #                 common_aug = transformers["common_small"],
+        #                 swap = transformers["swap"],
+        #                 totensor = transformers["train_small"],
+        #                 train = True,)
 
-        val_set = dataset(Config = Config,
-                      anno = Config.val_anno,
-                      swap_size=args.swap_num,
-                      common_aug = transformers["None"],
-                      swap = transformers["None"],
-                      totensor = transformers["val_small"],
-                      test=True,)
+        # trainval_set = dataset(Config = Config,
+        #                 anno = Config.train_anno,
+        #                 swap_size=args.swap_num,
+        #                 common_aug = transformers["None"],
+        #                 swap = transformers["None"],
+        #                 totensor = transformers["val_small"],
+        #                 train = False,
+        #                 train_val = True,)
+
+        # val_set = dataset(Config = Config,
+        #               anno = Config.val_anno,
+        #               swap_size=args.swap_num,
+        #               common_aug = transformers["None"],
+        #               swap = transformers["None"],
+        #               totensor = transformers["val_small"],
+        #               test=True,)
     else:
         print('大图像', flush=True)
         train_set = dataset(Config = Config,
