@@ -134,8 +134,7 @@ if __name__ == '__main__':
                         common_aug = transformers["common_small"],
                         swap = transformers["swap"],
                         totensor = transformers["train_small"],
-                        train = True,
-                        small=args.small)
+                        train = True,)
 
         trainval_set = dataset(Config = Config,
                         anno = Config.train_anno,
@@ -144,8 +143,7 @@ if __name__ == '__main__':
                         swap = transformers["None"],
                         totensor = transformers["val_small"],
                         train = False,
-                        train_val = True,
-                        small=args.small)
+                        train_val = True,)
 
         val_set = dataset(Config = Config,
                       anno = Config.val_anno,
@@ -153,8 +151,7 @@ if __name__ == '__main__':
                       common_aug = transformers["None"],
                       swap = transformers["None"],
                       totensor = transformers["val_small"],
-                      test=True,
-                      small=args.small)
+                      test=True,)
     else:
         print('大图像', flush=True)
         train_set = dataset(Config = Config,

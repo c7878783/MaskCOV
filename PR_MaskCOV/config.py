@@ -6,7 +6,7 @@ from transforms import transforms
 from utils.autoaugment import ImageNetPolicy
 
 # pretrained model checkpoints
-pretrained_model = {'resnet50': '../pretrained_models/resnet50-19c8e357.pth'}
+pretrained_model = {'resnet50': '../pretrained_models/resnet50-19c8e357.pth','resnet18':'../pretrained_models/resnet18-5c106cde.pth'}
 # pretrained_model = {'resnet50': '/export/home/s5058775/kiki/CDRM_fc_PR/models/pretrained/resnet50-19c8e357.pth',}
 
 

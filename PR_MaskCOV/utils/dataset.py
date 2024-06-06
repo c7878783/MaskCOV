@@ -27,7 +27,7 @@ def random_sample(img_names, labels):
     return img_list, anno_list
 
 class dataset(data.Dataset):
-    def __init__(self, Config, anno, swap_size=[2,2], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False, small=False):
+    def __init__(self, Config, anno, swap_size=[2,2], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False):
         self.Config = Config
         self.root_path = Config.rawdata_root
         self.numcls = Config.numcls

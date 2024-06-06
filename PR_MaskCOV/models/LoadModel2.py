@@ -29,30 +29,46 @@ class MainModel2(nn.Module):
                 self.model = pretrainedmodels.__dict__[self.backbone_arch](num_classes=1000, pretrained=None)
             else:
                 self.model = pretrainedmodels.__dict__[self.backbone_arch](num_classes=1000)
-
-        if self.backbone_arch == 'resnet50' or self.backbone_arch == 'se_resnet50':
+        if self.backbone_arch == 'resnet18':
             self.model = nn.Sequential(*list(self.model.children())[:-2])  # remove avgpool and fc
-        if self.backbone_arch == 'senet154':
-            self.model = nn.Sequential(*list(self.model.children())[:-3])
-        if self.backbone_arch == 'se_resnext101_32x4d':
-            self.model = nn.Sequential(*list(self.model.children())[:-2])
-        if self.backbone_arch == 'se_resnet101':
-            self.model = nn.Sequential(*list(self.model.children())[:-2])
-        self.conv_dim = nn.Conv2d(2048, 3, kernel_size=1, stride=1, padding=0, bias=False)
-        self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
-        self.classifier = nn.Linear(2048, self.num_classes, bias=False)
+            self.conv_dim = nn.Conv2d(512, 3, kernel_size=1, stride=1, padding=0, bias=False)
+            self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
+            self.classifier = nn.Linear(512, self.num_classes, bias=False)
+            if self.use_cdrm:
+                if config.cls_2:
+                    self.classifier_swap = nn.Linear(512, 2, bias=False)
+                if config.cls_2xmul:
+                    self.classifier_swap = nn.Linear(512, 2*self.num_classes, bias=False)
 
-        if self.use_cdrm:
-            if config.cls_2:
-                self.classifier_swap = nn.Linear(2048, 2, bias=False)
-            if config.cls_2xmul:
-                self.classifier_swap = nn.Linear(2048, 2*self.num_classes, bias=False)
+                self.blockN = config.swap_num[0]*config.swap_num[1]
+                self.classifier_cova = nn.Linear(512, self.blockN*9, bias=False)
 
-            self.blockN = config.swap_num[0]*config.swap_num[1]
-            self.classifier_cova = nn.Linear(2048, self.blockN*9, bias=False)
+            if self.use_Asoftmax:
+                self.Aclassifier = AngleLinear(512, self.num_classes, bias=False)            
+        else:
+            if self.backbone_arch == 'resnet50' or self.backbone_arch == 'se_resnet50':
+                self.model = nn.Sequential(*list(self.model.children())[:-2])  # remove avgpool and fc
+            if self.backbone_arch == 'senet154':
+                self.model = nn.Sequential(*list(self.model.children())[:-3])
+            if self.backbone_arch == 'se_resnext101_32x4d':
+                self.model = nn.Sequential(*list(self.model.children())[:-2])
+            if self.backbone_arch == 'se_resnet101':
+                self.model = nn.Sequential(*list(self.model.children())[:-2])
+            self.conv_dim = nn.Conv2d(2048, 3, kernel_size=1, stride=1, padding=0, bias=False)
+            self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
+            self.classifier = nn.Linear(2048, self.num_classes, bias=False)
 
-        if self.use_Asoftmax:
-            self.Aclassifier = AngleLinear(2048, self.num_classes, bias=False)
+            if self.use_cdrm:
+                if config.cls_2:
+                    self.classifier_swap = nn.Linear(2048, 2, bias=False)
+                if config.cls_2xmul:
+                    self.classifier_swap = nn.Linear(2048, 2*self.num_classes, bias=False)
+
+                self.blockN = config.swap_num[0]*config.swap_num[1]
+                self.classifier_cova = nn.Linear(2048, self.blockN*9, bias=False)
+
+            if self.use_Asoftmax:
+                self.Aclassifier = AngleLinear(2048, self.num_classes, bias=False)
 
     def forward(self, x, last_cont=None):
         x = self.model(x)  # resnet50 backbone
